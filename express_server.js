@@ -43,6 +43,19 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//delete shortlink and longurl from server
+app.post("/urls/:id/delete", (req, res) =>{
+  delete urlDatabase[req.params.id]
+  res.redirect("/urls")
+});
+
+//update longurl with existing shortURL
+app.post("/urls/:id", (req, res) =>{
+   urlDatabase[req.params.id] = req.body.update
+  res.redirect("/urls")
+});
+
+
 // identify url after the backslash
 app.get("/urls/:id", (req, res) => {
   let templateVars = { shortURL: req.params.id };

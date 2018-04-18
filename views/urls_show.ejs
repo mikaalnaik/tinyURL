@@ -5,7 +5,12 @@
 </head>
 <body>
 
-<%= shortURL %>
+<b>Short URL</b> <%= shortURL %>
+<form action="/urls/<%= shortURL%>" method="POST" style="margin:150px;">
+  <label for="update">Update</label>
+  <input id="update" type="text" name="update" value="http://" style="width: 300px">
+  <input type="submit" value="Update">
+</form>
 
   <br>
   <br>
