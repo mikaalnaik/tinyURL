@@ -4,34 +4,20 @@
   <center>
   <title>TinyURL </title>
   </centre>
-
-
   <%if (username) {%>   <h1>Hey, <%= username %>, welcome to Tiny URL</h1>
     <form method="POST" action="/logout">
     <input type="submit" value="Logout">
     </form>
-
     <br>
     <br>
     <%}%>
-
-
-
   <%if (!username) {%>   <h1>Welcome to TinyURL, please login below</h1>
     <form action="/login" method="POST" style="margin:150px;">
       <label for="username">Username</label>
       <input id="username" type="text" name="username"  style="width: 300px">
       <input type="submit" value="Login">
     </form>
-
-
     <%}%>
-
-
-
-
-
 </head>
-
 </body>
 </html>
