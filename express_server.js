@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookies = require('cookie-parser');
 
-
+app.use(cookies());
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
 
@@ -20,7 +21,8 @@ app.get("/", (req, res) => {
 
 //input urls to be shortened
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  let templateVars = { username: req.cookies['username']}
+  res.render("urls_new", templateVars);
   console.log(res)
 });
 
@@ -32,15 +34,22 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  let templateVars = { urls: urlDatabase };
+  let templateVars = {
+    urls: urlDatabase,
+    username: req.cookies['username']
+  };
   res.render("urls_index", templateVars);
-  // console.log(templateVars)
 });
 
-//TO FIX!
+//Redirect shortURLs to longURL website
 app.get("/u/:shortURL", (req, res) => {
   let longURL = urlDatabase[req.params.shortURL]
   res.redirect(longURL);
+});
+
+app.post('/logout',(req,res) => {
+  res.clearCookie('username')
+  res.redirect('/urls')
 });
 
 //delete shortlink and longurl from server
@@ -55,10 +64,17 @@ app.post("/urls/:id", (req, res) =>{
   res.redirect("/urls")
 });
 
+//accept login
+app.post("/login", (req, res) =>{
+   res.cookie('username', req.body.username)
+  res.redirect("/urls")
+});
 
 // identify url after the backslash
 app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
+  let templateVars = {
+    shortURL: req.params.id,
+    username: req.cookies['username']};
   res.render("urls_show", templateVars);
   // console.log(req.params.id)
 });
