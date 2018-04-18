@@ -50,7 +50,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.post('/logout',(req,res) => {
   res.clearCookie('username')
   res.redirect('/urls')
-});
+});  
 
 //delete shortlink and longurl from server
 app.post("/urls/:id/delete", (req, res) =>{
