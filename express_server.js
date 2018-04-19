@@ -14,30 +14,86 @@ var urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+      email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
 //home page-ish
 app.get("/", (req, res) => {
-  res.end("Hello!");
+  res.end("Hello! Welcome to TinyURL");
 });
+
+
+//register
+app.get("/register", (req, res) => {
+  // let templateVars = {}
+  res.render("urls_register");
+});
+
 
 //input urls to be shortened
 app.get("/urls/new", (req, res) => {
-  let templateVars = { username: req.cookies['username']}
+  //where i'm passing in whole users object
+  let templateVars = {
+     user: users[req.cookies['user_id']]
+  }
   res.render("urls_new", templateVars);
-  console.log(res)
+
 });
+
+
+//add new user to user object and check for duplicate emails
+app.post("/register", (req, res) => {
+  var tempId = generateRandomNumber()
+
+  var emailVerify = function(){
+    for (var keys in users){
+      if(users[keys].email == req.body.email){
+        res.status(404).send({ error: '400 Error. You already have a login'})
+      }
+    }
+}
+  if (emailVerify(req.body.email) == true){
+    res.status(404).send({ error: '404 ERROR' });
+  } else if ((req.body.email) && (req.body.password)){
+    users[tempId] = {
+      id : tempId,
+      email : req.body.email,
+      password : req.body.password
+    }
+    res.cookie('user_id', tempId)
+    console.log(users)
+    res.redirect("/urls");
+   } else {
+    res.status(404).send({ error: '404 ERROR' });
+}
+
+});
+
 
 //add new shortened url to the urlDatabase object
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  urlDatabase[generateRandomNumber()] = req.body.longURL  // debug statement to see POST parameters
+  // console.log(req.body);
+  urlDatabase[generateRandomNumber()] = req.body.longURL;  // debug statement to see POST parameters
   res.redirect("/urls");         // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls", (req, res) => {
+
   let templateVars = {
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   };
+  // console.log(templateVars)
   res.render("urls_index", templateVars);
 });
 
@@ -48,9 +104,9 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post('/logout',(req,res) => {
-  res.clearCookie('username')
-  res.redirect('/urls')
-});  
+  res.clearCookie('user_id')
+  res.render('urls_login')
+});
 
 //delete shortlink and longurl from server
 app.post("/urls/:id/delete", (req, res) =>{
@@ -64,17 +120,54 @@ app.post("/urls/:id", (req, res) =>{
   res.redirect("/urls")
 });
 
-//accept login
+//POST LOGIN
 app.post("/login", (req, res) =>{
-   res.cookie('username', req.body.username)
-  res.redirect("/urls")
+  var tempId = generateRandomNumber()
+
+  var emailVerify = function(){
+    for (var keys in users){
+      if(users[keys].email == req.body.email && users[keys].password == req.body.password){
+        res.cookie('user_id', users[keys].id)
+        res.redirect('/urls')
+      }
+    }
+}
+  if (emailVerify(req.body.email) == true){
+    res.status(404).send({ error: '404 ERROR' });
+  } else if ((req.body.email) && (req.body.password)){
+    users[tempId] = {
+      id : tempId,
+      email : req.body.email,
+      password : req.body.password
+    }
+    res.cookie('user_id', tempId)
+    console.log(users)
+    res.redirect("/urls");
+   } else {
+    res.status(404).send({ error: '404 ERROR' });
+}
+
+
+
+   res.cookie('user_id', req.body.username)
+   res.redirect("/urls")
 });
 
+app.get('/login', (req,res) => {
+  let templateVars = {
+    urls: urlDatabase,
+    user: users[req.cookies['user_id']]
+  };
+  res.render('urls_login', templateVars)
+})
+
 // identify url after the backslash
+// rendering urls_show
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
-    username: req.cookies['username']};
+    user: users[req.cookies['user_id']]
+  };
   res.render("urls_show", templateVars);
   // console.log(req.params.id)
 });
@@ -88,6 +181,7 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+//listen to server
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
