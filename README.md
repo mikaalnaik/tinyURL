@@ -2,8 +2,9 @@
 TinyURL Project
 
 
-TinyURL is a full stack web application built with Node and Express that allows users to shorten links for sharing on social media/blogs/wherever. 
+TinyURL is a full stack web application built with Node and Express that allows users to shorten links for sharing on social media/blogs/wherever.
 
+!["Screenshot of page](https://github.com/mikaalnaik/tinyURL/blob/master/doc/Screen%20Shot%202018-04-20%20at%205.01.04%20PM.png)
 
 Getting Started:
 
