@@ -83,13 +83,12 @@ app.post("/register", (req, res) => {
           email : req.body.email,
           password : bcrypt.hashSync(req.body.password, 10)
         }
-
-    req.session.user_id = tempId
-    res.redirect("/urls");
-   } else {
-    res.status(404).send({ error: '404 ERROR' });
-}
-}
+      req.session.user_id = tempId
+      res.redirect("/urls");
+     } else {
+      res.status(404).send({ error: '404 ERROR' });
+    }
+  }
 });
 
 
@@ -107,12 +106,10 @@ console.log(req.session.user_id)
 });
 
 app.get("/urls", (req, res) => {
-
   let templateVars = {
     urls: urlDatabase,
     user: users[req.session.user_id]
   };
-  // console.log(templateVars)
   res.render("urls_index", templateVars);
 });
 
@@ -147,14 +144,11 @@ app.post("/login", (req, res) =>{
       console.log('keys', keys)
       console.log('users', users)
       if(users[keys].email == req.body.email &&  bcrypt.compareSync(req.body.password, users[keys].password) ){
-
         req.session.user_id = users[keys].id
         res.redirect('urls')
-
       }
     }
     res.status(404).send({ error: '404 ERROR' });
-
 });
 
 app.get('/login', (req,res) => {
@@ -189,8 +183,6 @@ app.get("/urls.json", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-
-
 
 //generate random number for userID
 function generateRandomNumber(){
