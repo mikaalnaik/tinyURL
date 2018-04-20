@@ -5,27 +5,31 @@
 </head>
 <body>
 
-
+<center>
 
   <% for(var key in urls){ %>
-  <ul>
-  <li>
 
-  <%= [key] %> : <%= urls[key] %>
-  <a href ="urls/<%=key%>"> Edit </a>
+<br>
 
-  <form method="POST" action="/urls/<%= key %>/delete">
-  <input type="submit" value="Delete">
-  </form>
 
-  </li>
-  </ul>
-  <br>
-  <% } %>
+  <% if( user.id == urls[key].createdBy){ %>
+    <%= [key] %> : <%= urls[key].url %>
+    <a href ="urls/<%=key%>"> Edit </a>
+
+    <form method="POST" action="/urls/<%= key %>/delete">
+    <input type="submit" value="Delete">
+    </form>
+
+
+    <br>
+    <% } %>
+<%  } %>
+
 
 
   <br>
   <br>
   <a href = "urls/new"> Shorten your own link </a>
+</center>
 </body>
 </html>

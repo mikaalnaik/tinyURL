@@ -37,3 +37,12 @@
   opacity: 1;
   right: 0;
 }
+
+input[type=email] {
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
+input[type=email]:focus {
+    width: 100%;
+}

@@ -3,15 +3,31 @@ const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookies = require('cookie-parser');
+const cookieSession = require('cookie-session')
 
+app.use(express.static(__dirname + '/public'));
 app.use(cookies());
 app.use(bodyParser.urlencoded({extended: true}));
 app.set("view engine", "ejs");
+app.use(cookieSession({
+  name: 'session',
+  keys: ["1280098"],
+}))
+
+const bcrypt = require('bcrypt');
+const password = "purple-monkey-dinosaur"; // you will probably this from req.params
+const hashedPassword = bcrypt.hashSync(password, 10);
 
 
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  'b2xVn2' : {
+    'url' : "http://www.lighthouselabs.ca",
+    'createdBy' : "The Master"
+  },
+  '9sm5xK' : {
+    'url' : "http://www.google.com",
+    'createdBy' : "The Master"
+  }
 };
 
 const users = {
@@ -33,21 +49,23 @@ app.get("/", (req, res) => {
 });
 
 
-//register
+//GET request for the register page
 app.get("/register", (req, res) => {
-  // let templateVars = {}
   res.render("urls_register");
 });
 
 
-//input urls to be shortened
+//GET input longUrls to be shortened
 app.get("/urls/new", (req, res) => {
-  //where i'm passing in whole users object
-  let templateVars = {
-     user: users[req.cookies['user_id']]
-  }
-  res.render("urls_new", templateVars);
 
+  if(users[req.session.user_id] == undefined){
+    res.redirect('/login')
+  } else {
+    let templateVars = {
+       user: users[req.session.user_id]
+    }
+    res.render("urls_new", templateVars);
+  }
 });
 
 
@@ -55,35 +73,36 @@ app.get("/urls/new", (req, res) => {
 app.post("/register", (req, res) => {
   var tempId = generateRandomNumber()
 
-  var emailVerify = function(){
+
     for (var keys in users){
       if(users[keys].email == req.body.email){
-        res.status(404).send({ error: '400 Error. You already have a login'})
-      }
-    }
-}
-  if (emailVerify(req.body.email) == true){
-    res.status(404).send({ error: '404 ERROR' });
-  } else if ((req.body.email) && (req.body.password)){
-    users[tempId] = {
-      id : tempId,
-      email : req.body.email,
-      password : req.body.password
-    }
-    res.cookie('user_id', tempId)
-    console.log(users)
+        res.status(404).send({ error: '400 Error. You already have a login.'})
+      } else if ((req.body.email) && (req.body.password)){
+        users[tempId] = {
+          id : tempId,
+          email : req.body.email,
+          password : bcrypt.hashSync(req.body.password, 10)
+        }
+
+    req.session.user_id = tempId
     res.redirect("/urls");
    } else {
     res.status(404).send({ error: '404 ERROR' });
 }
-
+}
 });
 
 
 //add new shortened url to the urlDatabase object
 app.post("/urls", (req, res) => {
   // console.log(req.body);
-  urlDatabase[generateRandomNumber()] = req.body.longURL;  // debug statement to see POST parameters
+  var tempUniqueNum = generateRandomNumber()
+  urlDatabase[tempUniqueNum] = {
+    url: req.body.longURL,
+    createdBy: req.session.user_id
+  }
+console.log(req.session.user_id)
+  console.log(urlDatabase) // debug statement to see POST parameters
   res.redirect("/urls");         // Respond with 'Ok' (we will replace this)
 });
 
@@ -91,15 +110,16 @@ app.get("/urls", (req, res) => {
 
   let templateVars = {
     urls: urlDatabase,
-    user: users[req.cookies['user_id']]
+    user: users[req.session.user_id]
   };
   // console.log(templateVars)
   res.render("urls_index", templateVars);
 });
 
+
 //Redirect shortURLs to longURL website
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = urlDatabase[req.params.shortURL]
+  let longURL = urlDatabase[req.params.shortURL].url
   res.redirect(longURL);
 });
 
@@ -122,41 +142,25 @@ app.post("/urls/:id", (req, res) =>{
 
 //POST LOGIN
 app.post("/login", (req, res) =>{
-  var tempId = generateRandomNumber()
-
-  var emailVerify = function(){
+  console.log('body', req.body)
     for (var keys in users){
-      if(users[keys].email == req.body.email && users[keys].password == req.body.password){
-        res.cookie('user_id', users[keys].id)
-        res.redirect('/urls')
+      console.log('keys', keys)
+      console.log('users', users)
+      if(users[keys].email == req.body.email &&  bcrypt.compareSync(req.body.password, users[keys].password) ){
+
+        req.session.user_id = users[keys].id
+        res.redirect('urls')
+
       }
     }
-}
-  if (emailVerify(req.body.email) == true){
     res.status(404).send({ error: '404 ERROR' });
-  } else if ((req.body.email) && (req.body.password)){
-    users[tempId] = {
-      id : tempId,
-      email : req.body.email,
-      password : req.body.password
-    }
-    res.cookie('user_id', tempId)
-    console.log(users)
-    res.redirect("/urls");
-   } else {
-    res.status(404).send({ error: '404 ERROR' });
-}
 
-
-
-   res.cookie('user_id', req.body.username)
-   res.redirect("/urls")
 });
 
 app.get('/login', (req,res) => {
   let templateVars = {
     urls: urlDatabase,
-    user: users[req.cookies['user_id']]
+    user: users[req.session.user_id]
   };
   res.render('urls_login', templateVars)
 })
@@ -166,7 +170,7 @@ app.get('/login', (req,res) => {
 app.get("/urls/:id", (req, res) => {
   let templateVars = {
     shortURL: req.params.id,
-    user: users[req.cookies['user_id']]
+    user: users[req.session.user_id]
   };
   res.render("urls_show", templateVars);
   // console.log(req.params.id)
@@ -188,7 +192,7 @@ app.listen(PORT, () => {
 
 
 
-
+//generate random number for userID
 function generateRandomNumber(){
   let alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','y','x','z']
   let randomNumber = ''

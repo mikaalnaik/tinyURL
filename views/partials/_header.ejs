@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
-
   <center>
   <title>TinyURL </title>
   </centre>
-<head><b>TinyURL</b><br><BR><br>
+<head><b></b><br><BR><br>
 
-  <%if (user['email']) {%>   <h1>Hey, <%= user['email'] %>, welcome to Tiny URL</h1>
+  <h1>Hey, <%= user['email'] %>, welcome to Tiny URL</h1>
     <form method="POST" action="/logout">
     <input type="submit" value="Logout">
     </form>
-    <br>
-    <br>
-    <%}%>
-  <%if (!user['email']) {%>   <h1>Welcome to TinyURL, please login below</h1>
-    <form action="/login" method="POST" style="margin:150px;">
+
+
+
+    <!-- <form action="/login" method="POST" style="margin:150px;">
       <label for="user_id">Username</label>
       <input id="username" type="text" name="user_id"  style="width: 300px">
       <input type="submit" value="Login">
-    </form>
-    <%}%>
+    </form> -->
+
 </head>
+<br><br>
 </body>
 </html>
